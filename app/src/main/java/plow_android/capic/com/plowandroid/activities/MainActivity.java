@@ -2,9 +2,7 @@ package plow_android.capic.com.plowandroid.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,8 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -37,6 +35,7 @@ public class MainActivity extends AppCompatActivity
 
     private DownloadsAdapter adapter;
     private List<Download> listDownloads;
+    private int mCurrentStatus = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +44,14 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity
             params = new RequestParams();
             params.add("status", String.valueOf(status));
         }
-        RestService.get("downloads", params, new JsonHttpResponseHandler() {
+        RestService.get(this, "downloads", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 Log.d("loadDatas", "Number of downloads got: " + response.length());
@@ -91,6 +90,18 @@ public class MainActivity extends AppCompatActivity
                         e.printStackTrace();
                     }
                 }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Toast.makeText(MainActivity.this, throwable.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("loadDatas", throwable.getMessage());
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
+                Toast.makeText(MainActivity.this, throwable.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("loadDatas", throwable.getMessage());
             }
         });
     }
@@ -120,7 +131,13 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            if (mCurrentStatus == -1) {
+                loadDatas(null);
+            } else {
+                loadDatas(mCurrentStatus);
+            }
+
             return true;
         }
 
@@ -137,10 +154,13 @@ public class MainActivity extends AppCompatActivity
             loadDatas(null);
         } else if (id == R.id.download_in_progress) {
             loadDatas(Download.STATUS_IN_PROGRESS);
+            mCurrentStatus = Download.STATUS_IN_PROGRESS;
         } else if (id == R.id.download_waiting) {
             loadDatas(Download.STATUS_WAITING);
+            mCurrentStatus = Download.STATUS_WAITING;
         } else if (id == R.id.download_finished) {
             loadDatas(Download.STATUS_FINISHED);
+            mCurrentStatus = Download.STATUS_FINISHED;
         } else if (id == R.id.nav_preferences) {
             Intent i = new Intent(this, SettingsActivity.class);
             startActivity(i);

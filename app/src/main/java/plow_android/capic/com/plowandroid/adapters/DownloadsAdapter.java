@@ -1,13 +1,12 @@
 package plow_android.capic.com.plowandroid.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -32,20 +31,24 @@ public class DownloadsAdapter extends ArrayAdapter<Download> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_download, parent, false);
         }
 
-        RelativeLayout downloadLayout = (RelativeLayout) convertView.findViewById(R.id.downloadLayout);
+//        RelativeLayout downloadLayout = (RelativeLayout) convertView.findViewById(R.id.downloadLayout);
         TextView downloadName = (TextView) convertView.findViewById(R.id.downloadName);
         TextView downloadLink = (TextView) convertView.findViewById(R.id.downloadLink);
         TextView downloadPercent = (TextView) convertView.findViewById(R.id.downloadPercent);
+        ImageView icon = (ImageView) convertView.findViewById(R.id.icon);
 
         switch (((Byte)download.getStatus()).intValue()) {
             case Download.STATUS_WAITING:
-                downloadLayout.setBackgroundColor(Color.argb(50, 3, 53, 254)); // bleu
+//                downloadLayout.setBackgroundColor(Color.argb(50, 3, 53, 254)); // bleu
+                icon.setImageResource(R.drawable.ic_pause_black_24dp);
                 break;
             case Download.STATUS_IN_PROGRESS:
-                downloadLayout.setBackgroundColor(Color.argb(50, 49, 251, 4)); // vert
+//                downloadLayout.setBackgroundColor(Color.argb(50, 49, 251, 4)); // vert
+                icon.setImageResource(R.drawable.ic_play_black_24dp);
                 break;
             case Download.STATUS_FINISHED:
-                downloadLayout.setBackgroundColor(Color.argb(50, 254, 229, 3)); //jaune
+//                downloadLayout.setBackgroundColor(Color.argb(50, 254, 229, 3)); //jaune
+                icon.setImageResource(R.drawable.ic_check_black_24dp);
                 break;
         }
 
