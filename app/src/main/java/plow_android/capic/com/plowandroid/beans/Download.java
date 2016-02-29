@@ -32,8 +32,9 @@ public class Download implements Serializable {
     private Date theoricalStartDateTime;
     private Date lifecycleInsertDate;
     private Date lifecycleUpdateDate;
+    private Long hostId;
 
-    public Download(Long id, String name, String link, Long sizeFile, Long sizePart, Long sizeFileDownloaded, Long sizePartDownloaded, byte status, byte progressPart, byte progressFile, Long averageSpeed, Long currentSpeed, Long timeSpent, Long timeLeft, int pidPlowdown, int pidPython, String filePath, byte priority/*, Date theoricalStartDateTime, Date lifecycleInsertDate, Date lifecycleUpdateDate*/) {
+    public Download(Long id, String name, String link, Long sizeFile, Long sizePart, Long sizeFileDownloaded, Long sizePartDownloaded, byte status, byte progressPart, byte progressFile, Long averageSpeed, Long currentSpeed, Long timeSpent, Long timeLeft, int pidPlowdown, int pidPython, String filePath, byte priority/*, Date theoricalStartDateTime, Date lifecycleInsertDate, Date lifecycleUpdateDate*/, Long hostId) {
         this.id = id;
         this.name = name;
         this.link = link;
@@ -55,6 +56,7 @@ public class Download implements Serializable {
         /*this.theoricalStartDateTime = theoricalStartDateTime;
         this.lifecycleInsertDate = lifecycleInsertDate;
         this.lifecycleUpdateDate = lifecycleUpdateDate;*/
+        this.hostId = hostId;
     }
 
     public Long getId() {
@@ -223,5 +225,13 @@ public class Download implements Serializable {
 
     public void setLifecycleUpdateDate(Date lifecycleUpdateDate) {
         this.lifecycleUpdateDate = lifecycleUpdateDate;
+    }
+
+    public Long getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(Long hostId) {
+        this.hostId = hostId;
     }
 }
