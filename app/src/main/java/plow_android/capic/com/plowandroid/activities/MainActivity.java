@@ -206,16 +206,9 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         }
-        else if(item.getTitle()=="Send SMS")
-        {
 
-            // Code to execute when clicked on This Item                                                        }
-        }else
-            {
-                return false;
-            }
-            return true;
-        }
+        return true;
+    }
 
     // Append more data into the adapter
     public void customLoadMoreDataFromApi(int offset) {
