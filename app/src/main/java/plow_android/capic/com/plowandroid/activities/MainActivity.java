@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -45,11 +48,33 @@ public class MainActivity extends AppCompatActivity
     private DownloadsAdapter adapter;
     private List<Download> listDownloads;
     private Integer mCurrentStatus = null;
+    private ListView listview;
+    private SwipeRefreshLayout swipeContainer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                loadDatas(0, mCurrentStatus);
+            }
+        });
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -94,14 +119,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        ListView listview = (ListView) findViewById(R.id.listview);
+        listview = (ListView) findViewById(R.id.listview);
         listDownloads = new LinkedList<>();
         adapter = new DownloadsAdapter(this, R.layout.item_download, listDownloads, hashDownloadHostPictures);
         listview.setAdapter(adapter);
 
         loadDatas(0, null);
 
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+       /* listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(),
@@ -110,10 +135,19 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getApplicationContext(),
+                        "Click ListItem Number " + position, Toast.LENGTH_LONG)
+                        .show();
+                return true;
+            }
+        });*/
+
         listview.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
-                Log.d("onLoadMore", "+++++***********+++++++");
                 // Triggered only when new data needs to be appended to the list
                 // Add whatever code is needed to append new items to your AdapterView
                 customLoadMoreDataFromApi(page);
@@ -121,14 +155,79 @@ public class MainActivity extends AppCompatActivity
                 return true; // ONLY if more data is actually being loaded; false otherwise.
             }
         });
+
+        registerForContextMenu(listview);
     }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo) {
+//        super.onCreateContextMenu(menu, view, menuInfo);
+        if (view.getId() == R.id.listview) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+            menu.setHeaderTitle(listDownloads.get(info.position).getName());
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.download_context, menu);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        final Download download = listDownloads.get(info.position);
+
+        //  info.position will give the index of selected item intIndexSelected=info.position
+        if(item.getItemId() == R.id.download_context_item_delete)
+        {
+            RequestParams params = new RequestParams();
+            params.add("id", String.valueOf(download.getId()));
+
+            Log.d("onContextItemSelected", "Delete id: " + download.getId());
+            // Code to execute when clicked on This Item
+            RestService.delete(this, "downloads/" + download.getId(), null,  new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject jsonObject) {
+                    try {
+                        Log.d("onContextItemSelected", "Download id: " + download.getId() + " deletion => " + jsonObject.getBoolean("return"));
+                        if (jsonObject.getBoolean("return")) {
+                            listDownloads.remove(info.position);
+                            adapter.notifyDataSetChanged();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject response) {
+                    Toast.makeText(MainActivity.this, throwable.getMessage(), Toast.LENGTH_LONG).show();
+                    if (throwable.getMessage() != null) {
+                        Log.d("onContextItemSelected", throwable.getMessage());
+                    }
+                }
+            });
+        }
+        else if(item.getTitle()=="Send SMS")
+        {
+
+            // Code to execute when clicked on This Item                                                        }
+        }else
+            {
+                return false;
+            }
+            return true;
+        }
 
     // Append more data into the adapter
     public void customLoadMoreDataFromApi(int offset) {
+        /*if (offset >= listDownloads.size()) {
+            listview.addFooterView(LayoutInflater.from(MainActivity.this).inflate(R.layout.footer_list_downloads, null, false));
+        }
+*/
         // This method probably sends out a network request and appends new data items to your adapter.
         // Use the offset value and add it as a parameter to your API request to retrieve paginated data.
         // Deserialize API response and then construct new objects to append to the adapter
         Log.d("customLoadMore", "offset: " + offset);
+        swipeContainer.setRefreshing(true);
         loadDatas((offset - 1) * NUMBER_OF_ITEMS, mCurrentStatus);
     }
 
@@ -137,7 +236,7 @@ public class MainActivity extends AppCompatActivity
         loadDatas(0, status);
     }
     private void loadDatas(int offset, Integer status) {
-        //adapter.clear();
+        // TODO catch si l'adresse serveur est foireuse
         RequestParams params = new RequestParams();
         params.add("_offset", String.valueOf(offset));
         params.add("_limit", String.valueOf(NUMBER_OF_ITEMS));
@@ -159,6 +258,8 @@ public class MainActivity extends AppCompatActivity
                         e.printStackTrace();
                     }
                 }
+                // Now we call setRefreshing(false) to signal refresh has finished
+                swipeContainer.setRefreshing(false);
             }
 
             @Override

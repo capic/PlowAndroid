@@ -1,10 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PlowAndroid</string>
 
+    <string name="action_refresh">Rafraichir</string>
+
+    <string name="activity_main_drawer_all">Tout</string>
+    <string name="activity_main_drawer_in_progress">En cours</string>
+    <string name="activity_main_drawer_waiting">En attente</string>
+    <string name="activity_main_drawer_finished">Terminé</string>
+    <string name="activity_main_drawer_plus">Plus</string>
+    <string name="activity_main_drawer_preferences">Préférences</string>
+
+    <string name="download_context_item_delete">Supprimer</string>
+    <string name="item_download_percent_symbol">%</string>
+    <string name="item_download_percent">Percent</string>
+
+
+
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
-    <string name="action_refresh">Refresh</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
@@ -64,13 +79,4 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
-    <string name="activity_main_drawer_all">All</string>
-    <string name="activity_main_drawer_in_progress">In Progress</string>
-    <string name="activity_main_drawer_waiting">Waiting</string>
-    <string name="activity_main_drawer_finished">Finished</string>
-    <string name="activity_main_drawer_plus">Communicate</string>
-    <string name="activity_main_drawer_preferences">Preferences</string>
-    <string name="download_context_item_delete">Delete</string>
-    <string name="item_download_percent_symbol">%</string>
-    <string name="item_download_percent">percent</string>
 </resources>

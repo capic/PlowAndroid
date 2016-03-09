@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="%"
+        android:text="@string/item_download_percent_symbol"
         android:id="@+id/percentText"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
@@ -27,7 +27,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="percent"
+        android:text="@string/item_download_percent"
         android:id="@+id/downloadPercent"
         android:layout_above="@+id/downloadHost"
         android:layout_toStartOf="@+id/percentText"

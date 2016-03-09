@@ -41,4 +41,8 @@ public class RestService {
     public static void post(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
         client.post(getAbsoluteUrl(context, url), params, responseHandler);
     }
+
+    public static void delete(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.delete(getAbsoluteUrl(context, url), params, responseHandler);
+    }
 }
