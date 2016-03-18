@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity
                 // Your code to refresh the list here.
                 // Make sure you call swipeContainer.setRefreshing(false)
                 // once the network request has completed successfully.
+                listDownloads.clear();
                 loadDatas(0, mCurrentStatus);
             }
         });
@@ -126,15 +127,14 @@ public class MainActivity extends AppCompatActivity
 
         loadDatas(0, null);
 
-       /* listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getApplicationContext(),
-                        "Click ListItem Number " + position, Toast.LENGTH_LONG)
-                        .show();
+                Intent intent = new Intent(MainActivity.this, DownloadDetailActivity.class);
+                startActivity(intent);
             }
         });
-
+/*
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
