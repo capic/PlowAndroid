@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "plow_android.capic.com.plowandroid"
@@ -11,10 +11,21 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    signingConfigs {
+
+        release {
+
+            storeFile file('E:\\Users\\Vincent\\AndroidProjects\\key.jks')
+            storePassword "capic_20_04_1982"
+            keyAlias "capic_key"
+            keyPassword "capic_20_04_1982"
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
