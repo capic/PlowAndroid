@@ -1,5 +1,7 @@
 package plow_android.capic.com.plowandroid.beans;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -33,6 +35,8 @@ public class Download implements Serializable {
     private Date lifecycleInsertDate;
     private Date lifecycleUpdateDate;
     private Long hostId;
+
+    public Download() {}
 
     public Download(Long id, String name, String link, Long sizeFile, Long sizePart, Long sizeFileDownloaded, Long sizePartDownloaded, byte status, byte progressPart, byte progressFile, Long averageSpeed, Long currentSpeed, Long timeSpent, Long timeLeft, int pidPlowdown, int pidPython, String filePath, byte priority/*, Date theoricalStartDateTime, Date lifecycleInsertDate, Date lifecycleUpdateDate*/, Long hostId) {
         this.id = id;
@@ -233,5 +237,30 @@ public class Download implements Serializable {
 
     public void setHostId(Long hostId) {
         this.hostId = hostId;
+    }
+
+    public void fromJson(ObjectNode json) {
+        this.id = json.get("id").asLong();
+        this.name = json.get("name").asText();
+        this.link = json.get("link").asText();
+        this.sizeFile = json.get("size_file").asLong();
+        this.sizePart = json.get("size_part").asLong();
+        this.sizeFileDownloaded = json.get("size_file_downloaded").asLong();
+        this.sizePartDownloaded = json.get("size_part_downloaded").asLong();
+        this.status = Byte.valueOf(json.get("status").asText());
+        this.progressPart = Byte.valueOf(json.get("progress_part").asText());
+        this.progressFile = Byte.valueOf(json.get("progress_file").asText());
+        this.averageSpeed = json.get("average_speed").asLong();
+        this.currentSpeed = json.get("current_speed").asLong();
+        this.timeSpent = json.get("time_spent").asLong();
+        this.timeLeft = json.get("time_left").asLong();
+        this.pidPlowdown = json.get("pid_plowdown").asInt();
+        this.pidPython = json.get("pid_python").asInt();
+        this.filePath = json.get("file_path").asText();
+        this.priority = Byte.valueOf(json.get("priority").asText());
+        /*this.theoricalStartDateTime = theoricalStartDateTime;
+        this.lifecycleInsertDate = lifecycleInsertDate;
+        this.lifecycleUpdateDate = lifecycleUpdateDate;*/
+        this.hostId = json.get("host_id").asLong();
     }
 }
