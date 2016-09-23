@@ -68,37 +68,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        WampClientBuilder builder = new WampClientBuilder();
-        final WampClient client;
-        try {
-
-            builder.withConnectorProvider(new NettyWampClientConnectorProvider())
-                    .withUri("ws://capic.hd.free.fr:8181/ws")
-                    .withRealm("realm1")
-                    .withInfiniteReconnects()
-                    .withReconnectInterval(10, TimeUnit.SECONDS);
-
-            client = builder.build();
-
-            client.statusChanged().subscribe(t1 -> {
-                if(t1 instanceof WampClient.ConnectedState) {
-                    client.makeSubscription("plow.downloads.downloads").subscribe(arg0 -> {
-                        Log.d("WAMP", "publish");
-                        receiveDownloadsMessage(arg0);
-                    }, arg0 -> {
-                        if(arg0 != null) {
-                            Log.i("WAMP", " call Throwable response: " + arg0.toString());
-                        }
-                    });
-                }
-            });
-            client.open();
-
-        } catch (ApplicationError applicationError) {
-            applicationError.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        websocketManagement();
 
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 
@@ -233,6 +203,40 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             });
+        }
+    }
+
+    private void websocketManagement() {
+        WampClientBuilder builder = new WampClientBuilder();
+        final WampClient client;
+        try {
+
+            builder.withConnectorProvider(new NettyWampClientConnectorProvider())
+                    .withUri("ws://capic.hd.free.fr:8181/ws")
+                    .withRealm("realm1")
+                    .withInfiniteReconnects()
+                    .withReconnectInterval(10, TimeUnit.SECONDS);
+
+            client = builder.build();
+
+            client.statusChanged().subscribe(t1 -> {
+                if(t1 instanceof WampClient.ConnectedState) {
+                    client.makeSubscription("plow.downloads.downloads").subscribe(arg0 -> {
+                        Log.d("WAMP", "publish");
+                        receiveDownloadsMessage(arg0);
+                    }, arg0 -> {
+                        if(arg0 != null) {
+                            Log.i("WAMP", " call Throwable response: " + arg0.toString());
+                        }
+                    });
+                }
+            });
+            client.open();
+
+        } catch (ApplicationError applicationError) {
+            applicationError.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
