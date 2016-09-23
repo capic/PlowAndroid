@@ -1,1 +1,1 @@
-include ':app', ':jawampaLib-release'
+include ':app'

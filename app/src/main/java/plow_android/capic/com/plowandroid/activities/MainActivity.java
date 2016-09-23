@@ -1,7 +1,6 @@
 package plow_android.capic.com.plowandroid.activities;
 
 import android.content.Intent;
-import android.database.Observable;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -23,7 +22,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -44,12 +42,13 @@ import plow_android.capic.com.plowandroid.adapters.DownloadsAdapter;
 import plow_android.capic.com.plowandroid.beans.Download;
 import plow_android.capic.com.plowandroid.listeners.EndlessScrollListener;
 import plow_android.capic.com.plowandroid.services.RestService;
-import rx.Subscription;
 import rx.functions.Action1;
 import ws.wamp.jawampa.ApplicationError;
 import ws.wamp.jawampa.PubSubData;
 import ws.wamp.jawampa.WampClient;
 import ws.wamp.jawampa.WampClientBuilder;
+import ws.wamp.jawampa.connection.IWampConnectorProvider;
+import ws.wamp.jawampa.transport.netty.NettyWampClientConnectorProvider;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -72,40 +71,33 @@ public class MainActivity extends AppCompatActivity
         WampClientBuilder builder = new WampClientBuilder();
         final WampClient client;
         try {
-            builder.withUri("ws://capic.hd.free.fr:8181/ws")
+
+            builder.withConnectorProvider(new NettyWampClientConnectorProvider())
+                    .withUri("ws://capic.hd.free.fr:8181/ws")
                     .withRealm("realm1")
                     .withInfiniteReconnects()
                     .withReconnectInterval(10, TimeUnit.SECONDS);
 
             client = builder.build();
 
-            client.statusChanged().subscribe(new Action1<WampClient.Status>() {
-                @Override
-                public void call(WampClient.Status t1) {
-                    if(t1 == WampClient.Status.Connected) {
-                        client.makeSubscription("plow.downloads.downloads").subscribe(new Action1<PubSubData>(){
-                            @Override
-                            public void call(PubSubData arg0) {
-                                Log.d("WAMP", "publish");
-                                receiveDownloadsMessage(arg0);
-                            }
-
-                        }, new Action1<Throwable>(){
-                            @Override
-                            public void call(Throwable arg0) {
-                                if(arg0 != null) {
-                                    Log.i("WAMP", " call Throwable response: " + arg0.toString());
-                                }
-                            }
-
-                        });
-                    }
+            client.statusChanged().subscribe(t1 -> {
+                if(t1 instanceof WampClient.ConnectedState) {
+                    client.makeSubscription("plow.downloads.downloads").subscribe(arg0 -> {
+                        Log.d("WAMP", "publish");
+                        receiveDownloadsMessage(arg0);
+                    }, arg0 -> {
+                        if(arg0 != null) {
+                            Log.i("WAMP", " call Throwable response: " + arg0.toString());
+                        }
+                    });
                 }
             });
             client.open();
 
         } catch (ApplicationError applicationError) {
             applicationError.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
@@ -215,10 +207,11 @@ public class MainActivity extends AppCompatActivity
 
     private void receiveDownloadsMessage(PubSubData arg0) {
         if(arg0 != null) {
-
+            Log.d("WAMP", "receiveDownloadsMessage");
             this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d("WAMP", "receiveDownloadsMessage run");
                     ArrayNode nodes = arg0.arguments();
 
                     for (int i = 0; i < nodes.size(); i++) {
