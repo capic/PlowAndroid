@@ -1,8 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "24.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
+
+    packagingOptions
+            {
+                exclude "META-INF/LICENSE"
+                exclude "META-INF/INDEX.LIST"
+                exclude "META-INF/io.netty.versions.properties"
+            }
 
     defaultConfig {
         applicationId "plow_android.capic.com.plowandroid"
@@ -10,31 +17,31 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-    }
-    signingConfigs {
 
-        release {
-
-            storeFile file('E:\\Users\\Vincent\\AndroidProjects\\key.jks')
-            storePassword "capic_20_04_1982"
-            keyAlias "capic_key"
-            keyPassword "capic_20_04_1982"
+        jackOptions {
+            enabled true
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
     compile 'com.loopj.android:android-async-http:1.4.9'
     compile 'com.android.support:support-v4:23.1.1'
+    compile 'ws.wamp.jawampa:jawampa-core:0.4.2'
+    compile 'ws.wamp.jawampa:jawampa-netty:0.4.2'
+
 }

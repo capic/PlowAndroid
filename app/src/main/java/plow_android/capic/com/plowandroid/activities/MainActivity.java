@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
@@ -32,6 +34,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import cz.msebera.android.httpclient.Header;
 import plow_android.capic.com.plowandroid.R;
@@ -39,6 +42,13 @@ import plow_android.capic.com.plowandroid.adapters.DownloadsAdapter;
 import plow_android.capic.com.plowandroid.beans.Download;
 import plow_android.capic.com.plowandroid.listeners.EndlessScrollListener;
 import plow_android.capic.com.plowandroid.services.RestService;
+import rx.functions.Action1;
+import ws.wamp.jawampa.ApplicationError;
+import ws.wamp.jawampa.PubSubData;
+import ws.wamp.jawampa.WampClient;
+import ws.wamp.jawampa.WampClientBuilder;
+import ws.wamp.jawampa.connection.IWampConnectorProvider;
+import ws.wamp.jawampa.transport.netty.NettyWampClientConnectorProvider;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -46,6 +56,7 @@ public class MainActivity extends AppCompatActivity
     private static final int NUMBER_OF_ITEMS = 15;
 
     private DownloadsAdapter adapter;
+    private List<Long> listDownloadsId; // liste qui evite d'utiliser une hashmap (pas forcement ordonne dans le meme ordre)
     private List<Download> listDownloads;
     private Integer mCurrentStatus = null;
     private ListView listview;
@@ -57,6 +68,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        websocketManagement();
+
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -65,8 +78,7 @@ public class MainActivity extends AppCompatActivity
                 // Your code to refresh the list here.
                 // Make sure you call swipeContainer.setRefreshing(false)
                 // once the network request has completed successfully.
-                listDownloads.clear();
-                loadDatas(0, mCurrentStatus);
+                loadDatasWithClear(mCurrentStatus);
             }
         });
         // Configure the refreshing colors
@@ -122,6 +134,7 @@ public class MainActivity extends AppCompatActivity
 
         listview = (ListView) findViewById(R.id.listview);
         listDownloads = new LinkedList<>();
+        listDownloadsId = new LinkedList<>();
         adapter = new DownloadsAdapter(this, R.layout.item_download, listDownloads, hashDownloadHostPictures);
         listview.setAdapter(adapter);
 
@@ -157,6 +170,73 @@ public class MainActivity extends AppCompatActivity
         });
 
         registerForContextMenu(listview);
+
+
+    }
+
+    private void receiveDownloadsMessage(PubSubData arg0) {
+        if(arg0 != null) {
+            Log.d("WAMP", "receiveDownloadsMessage");
+            this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("WAMP", "receiveDownloadsMessage run");
+                    ArrayNode nodes = arg0.arguments();
+
+                    for (int i = 0; i < nodes.size(); i++) {
+                        ObjectNode node = (ObjectNode) nodes.get(i);
+                        Log.d("WAMP", node.toString());
+                        Download download = new Download();
+                        download.fromJson(node);
+                        int idx = listDownloadsId.indexOf(download.getId());
+                        Log.d("WAMP", "idx " + idx);
+                        listDownloads.set(idx, download);
+                        adapter.notifyDataSetChanged();
+                        Log.d("WAMP", String.valueOf(download.getProgressFile()));
+                    }
+
+                    try {
+                        JSONObject jsonComment = new JSONObject(nodes.toString());
+                        Log.d("WAMP", jsonComment.toString());
+                    } catch (JSONException e) {
+                    }
+                }
+            });
+        }
+    }
+
+    private void websocketManagement() {
+        WampClientBuilder builder = new WampClientBuilder();
+        final WampClient client;
+        try {
+
+            builder.withConnectorProvider(new NettyWampClientConnectorProvider())
+                    .withUri("ws://capic.hd.free.fr:8181/ws")
+                    .withRealm("realm1")
+                    .withInfiniteReconnects()
+                    .withReconnectInterval(10, TimeUnit.SECONDS);
+
+            client = builder.build();
+
+            client.statusChanged().subscribe(t1 -> {
+                if(t1 instanceof WampClient.ConnectedState) {
+                    client.makeSubscription("plow.downloads.downloads").subscribe(arg0 -> {
+                        Log.d("WAMP", "publish");
+                        receiveDownloadsMessage(arg0);
+                    }, arg0 -> {
+                        if(arg0 != null) {
+                            Log.i("WAMP", " call Throwable response: " + arg0.toString());
+                        }
+                    });
+                }
+            });
+            client.open();
+
+        } catch (ApplicationError applicationError) {
+            applicationError.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -190,6 +270,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d("onContextItemSelected", "Download id: " + download.getId() + " deletion => " + jsonObject.getBoolean("return"));
                         if (jsonObject.getBoolean("return")) {
                             listDownloads.remove(info.position);
+                            listDownloadsId.remove(info.position);
                             adapter.notifyDataSetChanged();
                         }
                     } catch (JSONException e) {
@@ -246,7 +327,10 @@ public class MainActivity extends AppCompatActivity
                     try {
                         JSONObject o = response.getJSONObject(i);
 
-                        adapter.add(new Download(o.getLong("id"), o.getString("name"), o.getString("link"), o.getLong("size_file"), o.getLong("size_part"), o.getLong("size_file_downloaded"), o.getLong("size_part_downloaded"), (byte) o.getInt("status"), (byte) o.getInt("progress_part"), (byte) o.getInt("progress_file"), o.getLong("average_speed"), o.getLong("current_speed"), o.getLong("time_spent"), o.getLong("time_left"), o.getInt("pid_plowdown"), o.getInt("pid_python"), o.getString("file_path"), (byte) o.getInt("priority"), o.getLong("host_id")));
+//                        adapter.add(new Download(o.getLong("id"), o.getString("name"), o.getString("link"), o.getLong("size_file"), o.getLong("size_part"), o.getLong("size_file_downloaded"), o.getLong("size_part_downloaded"), (byte) o.getInt("status"), (byte) o.getInt("progress_part"), (byte) o.getInt("progress_file"), o.getLong("average_speed"), o.getLong("current_speed"), o.getLong("time_spent"), o.getLong("time_left"), o.getInt("pid_plowdown"), o.getInt("pid_python"), o.getString("file_path"), (byte) o.getInt("priority"), o.getLong("host_id")));
+                        listDownloads.add(new Download(o.getLong("id"), o.getString("name"), o.getString("link"), o.getLong("size_file"), o.getLong("size_part"), o.getLong("size_file_downloaded"), o.getLong("size_part_downloaded"), (byte) o.getInt("status"), (byte) o.getInt("progress_part"), (byte) o.getInt("progress_file"), o.getLong("average_speed"), o.getLong("current_speed"), o.getLong("time_spent"), o.getLong("time_left"), o.getInt("pid_plowdown"), o.getInt("pid_python"), o.getString("file_path"), (byte) o.getInt("priority"), o.getLong("host_id")));
+                        listDownloadsId.add(o.getLong("id"));
+                        adapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
