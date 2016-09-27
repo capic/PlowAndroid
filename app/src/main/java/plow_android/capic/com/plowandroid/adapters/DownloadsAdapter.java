@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.HashMap;
@@ -49,6 +50,7 @@ public class DownloadsAdapter extends ArrayAdapter<Download> {
             TextView downloadPercent = (TextView) convertView.findViewById(R.id.downloadPercent);
             ImageView icon = (ImageView) convertView.findViewById(R.id.downloadStatus);
             ImageView host = (ImageView) convertView.findViewById(R.id.downloadHost);
+            ProgressBar progress = (ProgressBar) convertView.findViewById(R.id.downloadProgress);
 
             switch (((Byte) download.getStatus()).intValue()) {
                 case Download.STATUS_WAITING:
@@ -68,11 +70,13 @@ public class DownloadsAdapter extends ArrayAdapter<Download> {
             downloadLink.setText(download.getLink());
             downloadPercent.setText(String.valueOf(download.getProgressFile()));
             host.setImageBitmap(image);
+            progress.setProgress(download.getProgressFile());
 
             Log.d("getView", "<=== download adapter ===> ");
             Log.d("getView", "downloadName => text: " + downloadName.getText());
             Log.d("getView", "downloadLink => text: " + downloadLink.getText());
             Log.d("getView", "downloadHost => src: " + host.getDrawable().toString());
+        Log.d("getView", "downloadHost => src: " + progress.getProgress());
 
             return convertView;
 //        }
