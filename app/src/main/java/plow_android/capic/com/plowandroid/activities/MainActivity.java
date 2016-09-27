@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import cz.msebera.android.httpclient.Header;
+import plow_android.capic.com.plowandroid.DownloadDetailActivity;
 import plow_android.capic.com.plowandroid.R;
 import plow_android.capic.com.plowandroid.adapters.DownloadsAdapter;
 import plow_android.capic.com.plowandroid.beans.Download;
@@ -143,8 +144,8 @@ public class MainActivity extends AppCompatActivity
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                /*Intent intent = new Intent(MainActivity.this, DownloadDetailActivity.class);
-                startActivity(intent);*/
+                Intent intent = new Intent(MainActivity.this, DownloadDetailActivity.class);
+                startActivity(intent);
             }
         });
 /*
