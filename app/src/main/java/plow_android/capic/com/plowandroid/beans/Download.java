@@ -240,27 +240,29 @@ public class Download implements Serializable {
     }
 
     public void fromJson(ObjectNode json) {
-        this.id = json.get("id").asLong();
-        this.name = json.get("name").asText();
-        this.link = json.get("link").asText();
-        this.sizeFile = json.get("size_file").asLong();
-        this.sizePart = json.get("size_part").asLong();
-        this.sizeFileDownloaded = json.get("size_file_downloaded").asLong();
-        this.sizePartDownloaded = json.get("size_part_downloaded").asLong();
-        this.status = Byte.valueOf(json.get("status").asText());
-        this.progressPart = Byte.valueOf(json.get("progress_part").asText());
-        this.progressFile = Byte.valueOf(json.get("progress_file").asText());
-        this.averageSpeed = json.get("average_speed").asLong();
-        this.currentSpeed = json.get("current_speed").asLong();
-        this.timeSpent = json.get("time_spent").asLong();
-        this.timeLeft = json.get("time_left").asLong();
-        this.pidPlowdown = json.get("pid_plowdown").asInt();
-        this.pidPython = json.get("pid_python").asInt();
-        this.filePath = json.get("file_path").asText();
-        this.priority = Byte.valueOf(json.get("priority").asText());
+        if (json != null) {
+            this.id = json.get("id") != null ? json.get("id").asLong() : -1;
+            this.name = json.get("name") != null ? json.get("name").asText() : "";
+            this.link = json.get("link") != null ? json.get("link").asText() : "";
+            this.sizeFile = json.get("size_file") != null ? json.get("size_file").asLong() : 0;
+            this.sizePart = json.get("size_part") != null ? json.get("size_part").asLong() : 0;
+            this.sizeFileDownloaded = json.get("size_file_downloaded") != null ? json.get("size_file_downloaded").asLong() : 0;
+            this.sizePartDownloaded = json.get("size_part_downloaded") != null ? json.get("size_part_downloaded").asLong() : 0;
+            this.status = json.get("status") != null ? Byte.valueOf(json.get("status").asText()) : -1;
+            this.progressPart = json.get("progress_part") != null ? Byte.valueOf(json.get("progress_part").asText()) : 0;
+            this.progressFile = json.get("progress_file") != null ? Byte.valueOf(json.get("progress_file").asText()) : 0;
+            this.averageSpeed = json.get("average_speed") != null ? json.get("average_speed").asLong() : 0;
+            this.currentSpeed = json.get("current_speed") != null ? json.get("current_speed").asLong() : 0;
+            this.timeSpent = json.get("time_spent") != null ? json.get("time_spent").asLong() : 0;
+            this.timeLeft = json.get("time_left") != null ? json.get("time_left").asLong() : 0;
+            this.pidPlowdown = json.get("pid_plowdown") != null ? json.get("pid_plowdown").asInt() : 0;
+            this.pidPython = json.get("pid_python") != null ? json.get("pid_python").asInt() : 0;
+            this.filePath = json.get("file_path") != null ? json.get("file_path").asText() : "";
+            this.priority = json.get("priority") != null ? Byte.valueOf(json.get("priority").asText()) : -1;
         /*this.theoricalStartDateTime = theoricalStartDateTime;
         this.lifecycleInsertDate = lifecycleInsertDate;
         this.lifecycleUpdateDate = lifecycleUpdateDate;*/
-        this.hostId = json.get("host_id").asLong();
+            this.hostId = json.get("host_id") != null ? json.get("host_id").asLong() : -1;
+        }
     }
 }
